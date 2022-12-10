@@ -95,6 +95,7 @@ namespace BL
                         cmd.CommandText = query;
                         cmd.CommandType = CommandType.StoredProcedure;
 
+                        context.Open();
                          
                         SqlParameter[] collection = new SqlParameter[8];
 
@@ -124,6 +125,14 @@ namespace BL
                         collection[7].Value = libro.Genero.IdGenero;
 
                         cmd.Parameters.AddRange(collection);
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                        if(rowsAffected > 0)
+                        {
+                            result.Correct = true;
+                            result.Message = "Se ha actualizado el libro";
+                        }
 
                     }
                 }
@@ -179,6 +188,153 @@ namespace BL
                 result.Correct = false;
                 result.Ex = ex;
                 result.Message = "Error: " + result.Ex;
+            }
+
+            return result;
+        }
+
+        public static ML.Result GetAll()
+        {
+            ML.Result result = new ML.Result();
+            try
+            {
+                using(SqlConnection context = new SqlConnection(DL.Conexion.GetConexion()))
+                {
+                    var query = "LibroGetAll";
+
+                    using(SqlCommand cmd = new SqlCommand())
+                    {
+                        cmd.Connection=context;
+                        cmd.CommandText = query;
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        context.Open();
+
+                        DataTable libroTable = new DataTable();
+
+                        SqlDataAdapter sqldataAdapter = new SqlDataAdapter(cmd);
+
+                        sqldataAdapter.Fill(libroTable);
+
+                        if(libroTable.Rows.Count > 0)
+                        {
+                            result.Objects = new List<object>();
+
+
+                            foreach(DataRow row in libroTable.Rows)
+                            {
+                                ML.Libro libro = new ML.Libro();
+
+                                libro.IdLibro = int.Parse(row[0].ToString());
+                                libro.Nombre = row[1].ToString();
+
+                                libro.Autor = new ML.Autor();
+                                libro.Autor.IdAutor = int.Parse(row[2].ToString());
+                                libro.Autor.NombreAutor = row[3].ToString();
+
+                                libro.NumeroPaginas = int.Parse(row[4].ToString());
+                                libro.FechaPublicacion = row[5].ToString();
+
+                                libro.Editorial = new ML.Editorial();
+                                libro.Editorial.IdEditorial = int.Parse(row[6].ToString());
+                                libro.Editorial.Nombre = row[7].ToString();
+
+                                libro.Edicion = row[8].ToString();
+
+                                libro.Genero = new ML.Genero();
+                                libro.Genero.IdGenero = int.Parse(row[9].ToString());
+                                libro.Genero.Nombre = row[10].ToString();
+
+
+                                result.Objects.Add(libro);
+
+                            }
+                        }
+
+
+                    }
+                }
+                result.Correct = true;
+            }
+            catch(Exception ex)
+            {
+                result.Correct = false;
+                result.Ex = ex;
+                result.Message = "Error:  " + result.Message;
+            }
+
+            return result;
+        }
+
+        public static ML.Result GetById(int IdLibro)
+        {
+            ML.Result result = new ML.Result();
+
+            try
+            {
+                using (SqlConnection context = new SqlConnection(DL.Conexion.GetConexion()))
+                {
+                    var query = "LibroGetById";
+
+                    using(SqlCommand cmd = new SqlCommand())
+                    {
+                        cmd.Connection = context;
+                        cmd.CommandText = query;
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        context.Open();
+
+                        SqlParameter[] collection = new SqlParameter[1];
+
+                        collection[0] = new SqlParameter("IdLibro", SqlDbType.Int);
+                        collection[0].Value = IdLibro;
+
+                        cmd.Parameters.AddRange(collection);
+
+                        DataTable tableLibro = new DataTable();
+
+                        SqlDataAdapter sqldataAdapter = new SqlDataAdapter(cmd);
+
+                        sqldataAdapter.Fill(tableLibro);
+
+                        if(tableLibro.Rows.Count > 0)
+                        {
+                            DataRow row = tableLibro.Rows[0];
+
+                            ML.Libro libro = new ML.Libro();
+
+                            libro.IdLibro = int.Parse(row[0].ToString());
+                            libro.Nombre = row[1].ToString();
+
+                            libro.Autor = new ML.Autor();
+                            libro.Autor.IdAutor = int.Parse(row[2].ToString());
+                            libro.Autor.NombreAutor = row[3].ToString();
+
+                            libro.NumeroPaginas = int.Parse(row[4].ToString());
+                            libro.FechaPublicacion = row[5].ToString();
+
+                            libro.Editorial = new ML.Editorial();
+                            libro.Editorial.IdEditorial = int.Parse(row[6].ToString());
+                            libro.Editorial.Nombre = row[7].ToString();
+
+                            libro.Edicion = row[8].ToString();
+
+                            libro.Genero = new ML.Genero();
+                            libro.Genero.IdGenero = int.Parse(row[9].ToString());
+                            libro.Genero.Nombre = row[10].ToString();
+
+                            result.Object = libro;
+
+                        }
+                    }
+                }
+                result.Correct = true;
+            }
+            catch (Exception ex)
+            {
+                result.Correct = false;
+                result.Ex = ex;
+                result.Message = "Error:  " + result.Message;
             }
 
             return result;
